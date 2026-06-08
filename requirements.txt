@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+breeze-connect
+python-dotenv
