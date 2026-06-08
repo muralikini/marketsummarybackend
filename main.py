@@ -38,7 +38,7 @@ async def get_holdings(creds: BreezeCredentials):
             from_date=from_date,
             to_date=today,
             stock_code="",
-            portfolio_type="allholding"          # You can also try "EQ" or "FNO"
+            portfolio_type="holdings"          # You can also try "EQ" or "FNO"
         )
 
         if holdings.get("Status") != 200:
