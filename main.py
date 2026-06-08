@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from breeze_connect import BreezeConnect
 from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
+
 load_dotenv()
 
 app = FastAPI(title="Breeze Backend")
