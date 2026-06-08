@@ -42,7 +42,7 @@ async def get_historical(data: HistoricalRequest):
             session_token=data.session_token
         )
 
-        historical_data = breeze.get_historical_data(
+        historical_data = breeze.get_historical_data_v2(
             interval=data.interval,
             from_date=data.from_date,
             to_date=data.to_date,
