@@ -2,17 +2,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from breeze_connect import BreezeConnect
-import os
-from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
-load_dotenv()
+app = FastAPI(title="Breeze Backend - Portfolio Holdings")
 
-app = FastAPI(title="Breeze Backend")
-
-# Allow frontend to call this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to your frontend domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,18 +27,34 @@ async def get_holdings(creds: BreezeCredentials):
             api_secret=creds.secret_key,
             session_token=creds.session_token
         )
-        
-        # Fetch Demat Holdings
-        holdings = breeze.get_demat_holdings()
-        
+
+        # Get today's date and a date 5 years ago for broader results
+        today = datetime.now().strftime("%Y-%m-%dT06:00:00.000Z")
+        from_date = (datetime.now() - timedelta(days=1825)).strftime("%Y-%m-%dT06:00:00.000Z")
+
+        # Using get_portfolio_holdings with better parameters
+        holdings = breeze.get_portfolio_holdings(
+            exchange_code="NSE",
+            from_date=from_date,
+            to_date=today,
+            stock_code="",
+            portfolio_type="ALL"          # You can also try "EQ" or "FNO"
+        )
+
         if holdings.get("Status") != 200:
-            raise HTTPException(status_code=400, detail=holdings.get("Error", "Failed to fetch holdings"))
-        
-        return {"success": True, "data": holdings.get("Success", [])}
-    
+            raise HTTPException(
+                status_code=400, 
+                detail=holdings.get("Error", "Failed to fetch portfolio holdings")
+            )
+
+        return {
+            "success": True, 
+            "data": holdings.get("Success", [])
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def root():
-    return {"message": "Breeze Backend is running"}
+    return {"message": "Breeze Backend is running - Portfolio Holdings"}
