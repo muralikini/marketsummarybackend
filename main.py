@@ -24,36 +24,40 @@ class BreezeCredentials(BaseModel):
     secret_key: str
     session_token: str
 
+class HistoricalRequest(BaseModel):
+    api_key: str
+    secret_key: str
+    session_token: str
+    stock_code: str
+    from_date: str
+    to_date: str
+    interval: str = "1day"
+
 @app.post("/api/historical")
-async def get_historical_data(creds: BreezeCredentials, request: dict):
+async def get_historical(data: HistoricalRequest):
     try:
-        breeze = BreezeConnect(api_key=creds.api_key)
+        breeze = BreezeConnect(api_key=data.api_key)
         breeze.generate_session(
-            api_secret=creds.secret_key,
-            session_token=creds.session_token
+            api_secret=data.secret_key,
+            session_token=data.session_token
         )
 
-        stock_code = request.get("stock_code")
-        interval = request.get("interval", "1day")           # 1day, 1hour, 15minute etc.
-        from_date = request.get("from_date")                 # Format: "2021-01-01T06:00:00.000Z"
-        to_date = request.get("to_date")                     # Format: "2026-06-08T06:00:00.000Z"
-
-        if not stock_code or not from_date or not to_date:
-            raise HTTPException(status_code=400, detail="stock_code, from_date and to_date are required")
-
-        data = breeze.get_historical_data(
-            interval=interval,
-            from_date=from_date,
-            to_date=to_date,
-            stock_code=stock_code,
+        historical_data = breeze.get_historical_data(
+            interval=data.interval,
+            from_date=data.from_date,
+            to_date=data.to_date,
+            stock_code=data.stock_code,
             exchange_code="NSE",
             product_type="cash"
         )
 
-        if data.get("Status") != 200:
-            raise HTTPException(status_code=400, detail=data.get("Error", "Failed to fetch historical data"))
+        if historical_data.get("Status") != 200:
+            raise HTTPException(
+                status_code=400, 
+                detail=historical_data.get("Error", "Failed to fetch historical data")
+            )
 
-        return {"success": True, "data": data.get("Success", [])}
+        return {"success": True, "data": historical_data.get("Success", [])}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
