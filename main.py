@@ -140,9 +140,16 @@ async def get_nasdaq():
     try:
         ticker = yf.Ticker("^IXIC")
         hist = ticker.history(period="1d")
-        price = ticker.info.get("regularMarketPrice") or hist["Close"].iloc[-1]
+        
+        # More reliable way to get price
+        if not hist.empty:
+            price = hist["Close"].iloc[-1]
+        else:
+            price = ticker.info.get("regularMarketPrice", 0)
+            
         return {"success": True, "symbol": "NASDAQ", "price": round(float(price), 2)}
     except Exception as e:
+        print(f"NASDAQ Error: {str(e)}")  # This will show in Render logs
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -151,20 +158,32 @@ async def get_dow():
     try:
         ticker = yf.Ticker("^DJI")
         hist = ticker.history(period="1d")
-        price = ticker.info.get("regularMarketPrice") or hist["Close"].iloc[-1]
+        
+        if not hist.empty:
+            price = hist["Close"].iloc[-1]
+        else:
+            price = ticker.info.get("regularMarketPrice", 0)
+            
         return {"success": True, "symbol": "DOW", "price": round(float(price), 2)}
     except Exception as e:
+        print(f"DOW Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/market/crude")
 async def get_crude_oil():
     try:
-        ticker = yf.Ticker("CL=F")  # WTI Crude Oil Futures
+        ticker = yf.Ticker("CL=F")  # WTI Crude Oil
         hist = ticker.history(period="1d")
-        price = ticker.info.get("regularMarketPrice") or hist["Close"].iloc[-1]
+        
+        if not hist.empty:
+            price = hist["Close"].iloc[-1]
+        else:
+            price = ticker.info.get("regularMarketPrice", 0)
+            
         return {"success": True, "symbol": "Crude Oil (WTI)", "price": round(float(price), 2)}
     except Exception as e:
+        print(f"Crude Oil Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
