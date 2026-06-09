@@ -1,13 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from breeze_connect import BreezeConnect
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+import yfinance as yf
+from .market_routes import router as market_router
+
+app.include_router(market_router)
+
 
 load_dotenv()
-
+router = APIRouter()
 app = FastAPI(title="Breeze Backend")
 
 # Allow frontend to call this backend
@@ -95,6 +100,35 @@ async def get_holdings(creds: BreezeCredentials):
             "data": holdings.get("Success", [])
         }
 
+    
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    @router.get("/api/market/nasdaq")
+async def get_nasdaq():
+    try:
+        ticker = yf.Ticker("^IXIC")
+        price = ticker.info.get("regularMarketPrice") or ticker.history(period="1d")["Close"].iloc[-1]
+        return {"success": True, "symbol": "NASDAQ", "price": round(float(price), 2)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/api/market/dow")
+async def get_dow():
+    try:
+        ticker = yf.Ticker("^DJI")
+        price = ticker.info.get("regularMarketPrice") or ticker.history(period="1d")["Close"].iloc[-1]
+        return {"success": True, "symbol": "DOW", "price": round(float(price), 2)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/api/market/crude")
+async def get_crude_oil():
+    try:
+        ticker = yf.Ticker("CL=F")  # WTI Crude Oil
+        price = ticker.info.get("regularMarketPrice") or ticker.history(period="1d")["Close"].iloc[-1]
+        return {"success": True, "symbol": "Crude Oil (WTI)", "price": round(float(price), 2)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
