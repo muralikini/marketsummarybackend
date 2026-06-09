@@ -21,6 +21,7 @@ class BreezeCredentials(BaseModel):
     api_key: str
     secret_key: str
     session_token: str
+    stock_code: str = ""
 
 class HistoricalRequest(BaseModel):
     api_key: str
