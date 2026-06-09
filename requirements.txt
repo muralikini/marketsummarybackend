@@ -3,3 +3,4 @@ uvicorn
 breeze-connect
 python-dotenv
 yfinance
+pydantic
