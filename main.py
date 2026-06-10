@@ -3,7 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from breeze_connect import BreezeConnect
 from datetime import datetime, timedelta
+from typing import Optional, List
+import firebase_admin
+from firebase_admin import credentials, firestore
+import json
 import yfinance as yf
+
+
+# ==================== Firebase Initialization ====================
+# Make sure firebase-key.json is uploaded to your Render project
+cred = credentials.Certificate("firebase-key.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 app = FastAPI(title="Breeze Backend")
 
@@ -32,6 +43,17 @@ class HistoricalRequest(BaseModel):
     to_date: str
     interval: str = "1day"
 
+# Portfolio Item Model
+class PortfolioItem(BaseModel):
+    id: Optional[str] = None
+    type: str                    # "Equity", "MutualFund", "FD", "Bank", "Gold", "RealEstate", "Cash", "Other"
+    name: str                    # Company / Scheme / Bank name
+    scheme_code: Optional[str] = None   # For MF
+    quantity: float
+    avg_price: float             # Purchase price / NAV / FD rate etc.
+    current_price: Optional[float] = None
+    notes: Optional[str] = None
+    purchase_date: Optional[str] = None
 
 # ==================== BREEZE ENDPOINTS ====================
 
@@ -185,6 +207,31 @@ async def get_crude_oil():
     except Exception as e:
         print(f"Crude Oil Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ==================== PORTFOLIO (Firebase) ====================
+@app.post("/api/portfolio")
+async def save_portfolio_item(item: PortfolioItem):
+    try:
+        if not item.id:
+            doc_ref = db.collection("portfolio").document()
+            item.id = doc_ref.id
+        else:
+            doc_ref = db.collection("portfolio").document(item.id)
+
+        doc_ref.set(item.dict())
+        return {"success": True, "id": item.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/portfolio")
+async def get_portfolio():
+    try:
+        docs = db.collection("portfolio").stream()
+        items = [doc.to_dict() for doc in docs]
+        return {"success": True, "data": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))  
 
 
 # ==================== ROOT ====================
