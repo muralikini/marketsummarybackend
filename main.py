@@ -48,15 +48,12 @@ class HistoricalRequest(BaseModel):
 
 # Portfolio Item Model
 class PortfolioItem(BaseModel):
-    id: Optional[str] = None
-    type: str                    # "Equity", "MutualFund", "FD", "Bank", "Gold", "RealEstate", "Cash", "Other"
-    name: str                    # Company / Scheme / Bank name
-    scheme_code: Optional[str] = None   # For MF
+    type: str
+    name: str
     quantity: float
-    avg_price: float             # Purchase price / NAV / FD rate etc.
+    avg_price: float
+    scheme_code: Optional[str] = None
     current_price: Optional[float] = None
-    notes: Optional[str] = None
-    purchase_date: Optional[str] = None
 
 # ==================== BREEZE ENDPOINTS ====================
 
@@ -281,6 +278,16 @@ async def bulk_update_portfolio(data: BulkPortfolio):
         return {"success": True, "updated": len(data.items)}
     except Exception as e:
         raise HTTPException(500, str(e))
+
+@app.post("/api/portfolio")
+async def save_portfolio_item(item: PortfolioItem):
+    try:
+        # Use stable ID to prevent duplicates
+        doc_id = f"{item.type}_{item.name}"
+        portfolio_collection.document(doc_id).set(item.dict(), merge=True)
+        return {"success": True, "message": "Saved successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/portfolio/bulk")
 async def bulk_save_portfolio(data: dict):
