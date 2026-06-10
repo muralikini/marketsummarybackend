@@ -267,6 +267,17 @@ async def delete_portfolio_item(item: dict):
         return {"success": True}
     except Exception as e:
         raise HTTPException(500, str(e))
+
+@app.post("/api/portfolio/bulk")
+async def bulk_save_portfolio(data: dict):
+    try:
+        items = data.get("items", [])
+        for item in items:
+            doc_id = f"{item.get('type')}_{item.get('name')}"
+            portfolio_collection.document(doc_id).set(item)
+        return {"success": True, "message": f"Saved {len(items)} items"}
+    except Exception as e:
+        raise HTTPException(500, str(e))  
     
 @app.post("/api/live-mf-nav")
 async def get_mf_nav(request: dict):
