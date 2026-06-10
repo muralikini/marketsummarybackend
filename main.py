@@ -241,11 +241,12 @@ async def get_crude_oil():
         raise HTTPException(status_code=500, detail=str(e))
 
 # ==================== PORTFOLIO (Firebase) ====================
-@app.post("/api/portfolio")
-async def save_portfolio_item(item: PortfolioItem):
+@app.get("/api/portfolio")
+async def get_portfolio():
     try:
-        portfolio_collection.document(f"{item.type}_{item.name}").set(item.dict())
-        return {"success": True, "message": "Saved to Firebase"}
+        docs = portfolio_collection.stream()
+        data = [doc.to_dict() for doc in docs]
+        return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(500, str(e))
 
@@ -260,11 +261,24 @@ async def get_portfolio():
         raise HTTPException(500, str(e))
 
 @app.delete("/api/portfolio")
-async def delete_portfolio_item(item: dict):
+async def delete_portfolio_item(payload: dict):
     try:
-        doc_id = f"{item.get('type')}_{item.get('name')}"
+        doc_id = f"{payload.get('type')}_{payload.get('name')}"
         portfolio_collection.document(doc_id).delete()
         return {"success": True}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+
+class BulkPortfolio(BaseModel):
+    items: List[dict]
+
+@app.post("/api/portfolio/bulk")
+async def bulk_update_portfolio(data: BulkPortfolio):
+    try:
+        for item in data.items:
+            doc_id = f"{item.get('type')}_{item.get('name')}"
+            portfolio_collection.document(doc_id).set(item, merge=True)
+        return {"success": True, "updated": len(data.items)}
     except Exception as e:
         raise HTTPException(500, str(e))
 
