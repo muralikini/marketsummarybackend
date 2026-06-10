@@ -154,6 +154,35 @@ async def get_live_quote(creds: BreezeCredentials):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))    
 
+@app.post("/api/live-price")
+async def get_live_price(creds: BreezeCredentials):
+    try:
+        breeze = BreezeConnect(api_key=creds.api_key)
+        breeze.generate_session(
+            api_secret=creds.secret_key,
+            session_token=creds.session_token
+        )
+
+        quote = breeze.get_quotes(
+            stock_code=creds.stock_code,
+            exchange_code="NSE",
+            product_type="cash"
+        )
+
+        if quote.get("Status") != 200:
+            raise HTTPException(status_code=400, detail=quote.get("Error", "Failed to fetch price"))
+
+        data = quote.get("Success", [{}])[0]
+        ltp = float(data.get('ltp') or data.get('last_traded_price') or 0)
+
+        return {
+            "success": True,
+            "stock_code": creds.stock_code,
+            "ltp": ltp
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ==================== MARKET DATA ENDPOINTS (Using yfinance) ====================
 
