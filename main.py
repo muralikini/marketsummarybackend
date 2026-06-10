@@ -12,9 +12,12 @@ import yfinance as yf
 
 # ==================== Firebase Initialization ====================
 # Make sure firebase-key.json is uploaded to your Render project
-cred = credentials.Certificate("firebase-key.json")
-firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    cred = credentials.Certificate("firebase-key.json")
+    firebase_admin.initialize_app(cred)
+
 db = firestore.client()
+portfolio_collection = db.collection("portfolio")
 
 app = FastAPI(title="Breeze Backend")
 
@@ -241,27 +244,30 @@ async def get_crude_oil():
 @app.post("/api/portfolio")
 async def save_portfolio_item(item: PortfolioItem):
     try:
-        if not item.id:
-            doc_ref = db.collection("portfolio").document()
-            item.id = doc_ref.id
-        else:
-            doc_ref = db.collection("portfolio").document(item.id)
-
-        doc_ref.set(item.dict())
-        return {"success": True, "id": item.id}
+        portfolio_collection.document(f"{item.type}_{item.name}").set(item.dict())
+        return {"success": True, "message": "Saved to Firebase"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(500, str(e))
 
 
 @app.get("/api/portfolio")
 async def get_portfolio():
     try:
-        docs = db.collection("portfolio").stream()
-        items = [doc.to_dict() for doc in docs]
-        return {"success": True, "data": items}
+        docs = portfolio_collection.stream()
+        data = [doc.to_dict() for doc in docs]
+        return {"success": True, "data": data}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  
+        raise HTTPException(500, str(e))
 
+@app.delete("/api/portfolio")
+async def delete_portfolio_item(item: dict):
+    try:
+        doc_id = f"{item.get('type')}_{item.get('name')}"
+        portfolio_collection.document(doc_id).delete()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(500, str(e))
+    
 @app.post("/api/live-mf-nav")
 async def get_mf_nav(request: dict):
     """Get latest NAV for Mutual Fund using public API"""
