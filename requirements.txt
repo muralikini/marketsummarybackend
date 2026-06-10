@@ -4,3 +4,4 @@ breeze-connect
 python-dotenv
 yfinance
 pydantic
+firebase-admin
