@@ -262,7 +262,27 @@ async def get_portfolio():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))  
 
+@app.post("/api/live-mf-nav")
+async def get_mf_nav(request: dict):
+    """Get latest NAV for Mutual Fund using public API"""
+    try:
+        scheme_code = request.get("scheme_code")
+        if not scheme_code:
+            raise HTTPException(status_code=400, detail="scheme_code is required")
 
+        # Using mfapi.in - very reliable for Indian MFs
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"https://api.mfapi.in/mf/{scheme_code}")
+            data = response.json()
+
+            if data.get("status") == "SUCCESS":
+                nav = float(data["data"][0]["nav"])
+                return {"success": True, "nav": nav, "scheme": data["meta"]["scheme_name"]}
+            else:
+                raise HTTPException(status_code=404, detail="MF scheme not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 # ==================== ROOT ====================
 @app.get("/")
 def root():
