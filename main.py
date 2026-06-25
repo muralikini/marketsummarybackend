@@ -342,7 +342,29 @@ async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
             "data": holdings
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))    
+        raise HTTPException(status_code=400, detail=str(e))   
+
+# ==================== ZERODHA TOKEN EXCHANGE ====================
+@app.post("/api/zerodha/exchange-token")
+async def exchange_zerodha_token(data: dict):
+    try:
+        api_key = "r5ecqcr9rq4707w6"
+        api_secret = "23v98y0g6935ip4k3onv7yvby4ncrne8"
+
+        kite = KiteConnect(api_key=api_key)
+        session_data = kite.generate_session(
+            request_token=data.get("request_token"),
+            api_secret=api_secret
+        )
+        access_token = session_data["access_token"]
+
+        return {
+            "success": True,
+            "access_token": access_token,
+            "message": "Token exchanged successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) 
 
   
 # ==================== ROOT ====================
