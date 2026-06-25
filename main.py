@@ -348,7 +348,7 @@ async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
 @app.post("/api/zerodha/exchange-token")
 async def exchange_zerodha_token(data: dict):
     try:
-        api_key = "r5ecqcr9rq4707w6"
+        api_key = "r5ecqcr9rq47o7w6"
         api_secret = "23v98y0g6935ip4k3onv7yvby4ncrne8"
 
         kite = KiteConnect(api_key=api_key)
