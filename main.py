@@ -24,11 +24,17 @@ portfolio_collection = db.collection("portfolio")
 app = FastAPI(title="Breeze Backend")
 
 # CORS Middleware
+# CORS Middleware - Improved for GitHub Pages + Render
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this to your frontend domain in production
+    allow_origins=[
+        "https://muralikini.github.io",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "*"  # Keep this as fallback
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
