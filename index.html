@@ -2545,39 +2545,25 @@ async function refreshZerodhaPrices() {
 // ==================== ZERODHA LOGIN URL (FINAL CLEAN VERSION) ====================
 function generateZerodhaLoginUrl() {
     const apiKey = "r5ecqcr9rq4707w6";
-    
     const loginUrl = `https://kite.zerodha.com/connect/login?api_key=${apiKey}&v=3`;
     
-    // Remove old box if exists
     const existing = document.getElementById('zerodha-login-url');
     if (existing) existing.remove();
     
-    // Create info box
     const box = document.createElement('div');
     box.id = 'zerodha-login-url';
     box.className = 'mt-4 p-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm';
     box.innerHTML = `
         <div class="flex justify-between items-start mb-2">
             <span class="text-emerald-400 font-semibold">Step 1: Login URL</span>
-            <button onclick="this.closest('#zerodha-login-url').remove()" 
-                    class="text-zinc-400 hover:text-white text-xl leading-none">×</button>
+            <button onclick="this.closest('#zerodha-login-url').remove()" class="text-zinc-400 hover:text-white text-xl">×</button>
         </div>
-        
-        <a href="${loginUrl}" target="_blank" 
-           class="block text-blue-400 hover:text-blue-300 underline break-all mb-3">
-            ${loginUrl}
-        </a>
-        
-        <div class="text-xs text-zinc-400 space-y-1">
-            <div>1. Click the link above → Login to Zerodha</div>
-            <div>2. Copy the <strong class="text-white">request_token</strong> from the URL</div>
-            <div>3. Paste it above and click <strong class="text-white">Exchange & Fetch</strong></div>
+        <a href="${loginUrl}" target="_blank" class="block text-blue-400 hover:text-blue-300 underline break-all mb-3">${loginUrl}</a>
+        <div class="text-xs text-zinc-400">
+            After login, quickly copy the <strong>request_token</strong> and paste it above.
         </div>
     `;
-    
     document.getElementById('broker-content-1').appendChild(box);
-    
-    // Copy to clipboard
     navigator.clipboard.writeText(loginUrl).catch(() => {});
 }
 
