@@ -2541,44 +2541,48 @@ async function refreshZerodhaPrices() {
     alert("Zerodha prices refreshed!");
 }
 
-// Generate Zerodha Login URL
+
+// ==================== ZERODHA LOGIN URL (FINAL CLEAN VERSION) ====================
 function generateZerodhaLoginUrl() {
-    const apiKey = "r5ecqcr9rq4707w6"; // Your Zerodha API Key (hardcoded)
+    const apiKey = "r5ecqcr9rq4707w6"; // Hardcoded - no need for input field
     
-    // Generate the login URL
     const loginUrl = `https://kite.zerodha.com/connect/login?api_key=${apiKey}&v=3`;
     
-    // Show the URL in a nice way (you can also use a modal or just alert)
-    const urlContainer = document.createElement('div');
-    urlContainer.className = 'mt-3 p-3 bg-zinc-900 border border-zinc-700 rounded-xl text-sm';
-    urlContainer.innerHTML = `
-        <div class="flex items-center justify-between mb-2">
-            <span class="text-emerald-400 font-medium">Login URL (Click to open):</span>
-            <button onclick="this.parentElement.remove()" class="text-zinc-400 hover:text-white">×</button>
+    // Remove old URL box if exists
+    const existing = document.getElementById('zerodha-login-url');
+    if (existing) existing.remove();
+    
+    // Create nice info box
+    const box = document.createElement('div');
+    box.id = 'zerodha-login-url';
+    box.className = 'mt-4 p-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm';
+    box.innerHTML = `
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <span class="text-emerald-400 font-semibold">Step 1: Login URL</span>
+            </div>
+            <button onclick="this.closest('#zerodha-login-url').remove()" 
+                    class="text-zinc-400 hover:text-white text-xl leading-none">×</button>
         </div>
+        
         <a href="${loginUrl}" target="_blank" 
-           class="text-blue-400 hover:text-blue-300 break-all underline">
+           class="block text-blue-400 hover:text-blue-300 underline break-all mb-3">
             ${loginUrl}
         </a>
-        <div class="mt-2 text-xs text-zinc-500">
-            After login, copy the <strong>request_token</strong> from the redirected URL.
+        
+        <div class="text-xs text-zinc-400 space-y-1">
+            <div>1. Click the link above and login with your Zerodha account</div>
+            <div>2. After login, copy the <strong class="text-white">request_token</strong> from the URL</div>
+            <div>3. Paste the request_token in the box above and click <strong class="text-white">Exchange & Fetch</strong></div>
         </div>
     `;
     
-    // Remove any existing URL container first
-    const existing = document.querySelector('#zerodha-login-url');
-    if (existing) existing.remove();
-    
-    urlContainer.id = 'zerodha-login-url';
-    
-    // Insert after the buttons
+    // Add it inside the Zerodha section
     const zerodhaSection = document.getElementById('broker-content-1');
-    zerodhaSection.appendChild(urlContainer);
+    zerodhaSection.appendChild(box);
     
-    // Also copy to clipboard automatically
-    navigator.clipboard.writeText(loginUrl).then(() => {
-        console.log("Login URL copied to clipboard");
-    });
+    // Auto copy to clipboard
+    navigator.clipboard.writeText(loginUrl).catch(() => {});
 }
 
 function copyToClipboard(text, button) {
