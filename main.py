@@ -281,7 +281,9 @@ class BulkPortfolio(BaseModel):
 async def bulk_update_portfolio(data: BulkPortfolio):
     try:
         for item in data.items:
-            doc_id = f"{item.get('type')}_{item.get('name')}"
+            #doc_id = f"{item.get('type')}_{item.get('name')}"
+            broker = item.get("broker", "ICICI")   # Default to ICICI if not present
+            doc_id = f"{item['type']}_{broker}_{item['name']}"
             portfolio_collection.document(doc_id).set(item, merge=True)
         return {"success": True, "updated": len(data.items)}
     except Exception as e:
@@ -291,7 +293,9 @@ async def bulk_update_portfolio(data: BulkPortfolio):
 async def save_portfolio_item(item: PortfolioItem):
     try:
         # Use stable ID to prevent duplicates
-        doc_id = f"{item.type}_{item.name}"
+        #doc_id = f"{item.type}_{item.name}"
+        broker = item.get("broker", "ICICI")   # Default to ICICI if not present
+        doc_id = f"{item['type']}_{broker}_{item['name']}"
         portfolio_collection.document(doc_id).set(item.dict(), merge=True)
         return {"success": True, "message": "Saved successfully"}
     except Exception as e:
