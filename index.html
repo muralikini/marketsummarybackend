@@ -2544,23 +2544,21 @@ async function refreshZerodhaPrices() {
 
 // ==================== ZERODHA LOGIN URL (FINAL CLEAN VERSION) ====================
 function generateZerodhaLoginUrl() {
-    const apiKey = "r5ecqcr9rq4707w6"; // Hardcoded - no need for input field
+    const apiKey = "r5ecqcr9rq4707w6";
     
     const loginUrl = `https://kite.zerodha.com/connect/login?api_key=${apiKey}&v=3`;
     
-    // Remove old URL box if exists
+    // Remove old box if exists
     const existing = document.getElementById('zerodha-login-url');
     if (existing) existing.remove();
     
-    // Create nice info box
+    // Create info box
     const box = document.createElement('div');
     box.id = 'zerodha-login-url';
     box.className = 'mt-4 p-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm';
     box.innerHTML = `
         <div class="flex justify-between items-start mb-2">
-            <div>
-                <span class="text-emerald-400 font-semibold">Step 1: Login URL</span>
-            </div>
+            <span class="text-emerald-400 font-semibold">Step 1: Login URL</span>
             <button onclick="this.closest('#zerodha-login-url').remove()" 
                     class="text-zinc-400 hover:text-white text-xl leading-none">×</button>
         </div>
@@ -2571,17 +2569,15 @@ function generateZerodhaLoginUrl() {
         </a>
         
         <div class="text-xs text-zinc-400 space-y-1">
-            <div>1. Click the link above and login with your Zerodha account</div>
-            <div>2. After login, copy the <strong class="text-white">request_token</strong> from the URL</div>
-            <div>3. Paste the request_token in the box above and click <strong class="text-white">Exchange & Fetch</strong></div>
+            <div>1. Click the link above → Login to Zerodha</div>
+            <div>2. Copy the <strong class="text-white">request_token</strong> from the URL</div>
+            <div>3. Paste it above and click <strong class="text-white">Exchange & Fetch</strong></div>
         </div>
     `;
     
-    // Add it inside the Zerodha section
-    const zerodhaSection = document.getElementById('broker-content-1');
-    zerodhaSection.appendChild(box);
+    document.getElementById('broker-content-1').appendChild(box);
     
-    // Auto copy to clipboard
+    // Copy to clipboard
     navigator.clipboard.writeText(loginUrl).catch(() => {});
 }
 
