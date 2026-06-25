@@ -352,18 +352,21 @@ async def exchange_zerodha_token(data: dict):
         api_secret = "23v98y0g6935ip4k3onv7yvby4ncrne8"
 
         kite = KiteConnect(api_key=api_key)
-        request_token=data.get("request_token")
-        data_token = kite.generate_session(request_token, api_secret=api_secret)
-        session_data = kite.generate_session(data_token["access_token"])
+        
+        # Correct way to call generate_session
+        session_data = kite.generate_session(
+            data.get("request_token"), 
+            api_secret
+        )
+        
         access_token = session_data["access_token"]
 
         return {
             "success": True,
-            "access_token": access_token,
-            "message": "Token exchanged successfully"
+            "access_token": access_token
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e)) 
+        raise HTTPException(status_code=400, detail=str(e))
 
   
 # ==================== ROOT ====================
