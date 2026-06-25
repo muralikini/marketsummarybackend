@@ -8,6 +8,8 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import json
 import yfinance as yf
+from fastapi import APIRouter
+from kiteconnect import KiteConnect
 
 
 # ==================== Firebase Initialization ====================
@@ -321,6 +323,28 @@ async def get_mf_nav(request: dict):
                 raise HTTPException(status_code=404, detail="MF scheme not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+router = APIRouter()
+
+class ZerodhaHoldingsRequest(BaseModel):
+    api_key: str
+    access_token: str
+
+@router.post("/api/zerodha/holdings")
+async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
+    try:
+        kite = KiteConnect(api_key=request.api_key)
+        kite.set_access_token(request.access_token)
+        
+        holdings = kite.holdings()
+        
+        return {
+            "success": True,
+            "data": holdings
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))    
 # ==================== ROOT ====================
 @app.get("/")
 def root():

@@ -2,6 +2,4 @@ fastapi
 uvicorn
 breeze-connect
 python-dotenv
-yfinance
-pydantic
-firebase-admin
+kiteconnect
