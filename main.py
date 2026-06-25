@@ -330,10 +330,13 @@ class ZerodhaHoldingsRequest(BaseModel):
     access_token: str
 
 @app.post("/api/zerodha/holdings")
-async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
+async def get_zerodha_holdings(request: dict):
     try:
-        kite = KiteConnect(api_key=request.api_key)
-        kite.set_access_token(request.access_token)
+        api_key = request.get("api_key", "r5ecqcr9rq47o7w6")
+        access_token = request.get("access_token")
+
+        kite = KiteConnect(api_key=api_key)
+        kite.set_access_token(access_token)
         
         holdings = kite.holdings()
         
@@ -342,7 +345,7 @@ async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
             "data": holdings
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))   
+        raise HTTPException(status_code=400, detail=str(e))
 
 # ==================== ZERODHA TOKEN EXCHANGE ====================
 @app.post("/api/zerodha/exchange-token")
