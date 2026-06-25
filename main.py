@@ -322,16 +322,14 @@ async def get_mf_nav(request: dict):
             else:
                 raise HTTPException(status_code=404, detail="MF scheme not found")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))    
     
-
-router = APIRouter()
-
+# ==================== ZERODHA ENDPOINT ====================
 class ZerodhaHoldingsRequest(BaseModel):
     api_key: str
     access_token: str
 
-@router.post("/api/zerodha/holdings")
+@app.post("/api/zerodha/holdings")
 async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
     try:
         kite = KiteConnect(api_key=request.api_key)
@@ -345,6 +343,8 @@ async def get_zerodha_holdings(request: ZerodhaHoldingsRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))    
+
+  
 # ==================== ROOT ====================
 @app.get("/")
 def root():
