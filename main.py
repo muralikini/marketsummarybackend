@@ -255,20 +255,10 @@ async def get_portfolio():
     except Exception as e:
         raise HTTPException(500, str(e))
 
-
-@app.get("/api/portfolio")
-async def get_portfolio():
-    try:
-        docs = portfolio_collection.stream()
-        data = [doc.to_dict() for doc in docs]
-        return {"success": True, "data": data}
-    except Exception as e:
-        raise HTTPException(500, str(e))
-
 @app.delete("/api/portfolio")
 async def delete_portfolio_item(payload: dict):
     try:
-        broker = payload.get("broker", "ICICI")
+        broker = payload.get("broker", "Manual")
         doc_id = f"{payload.get('type')}_{broker}_{payload.get('name')}"
         portfolio_collection.document(doc_id).delete()
         return {"success": True}
@@ -291,13 +281,11 @@ async def bulk_update_portfolio(data: BulkPortfolio):
         raise HTTPException(500, str(e))
 
 @app.post("/api/portfolio")
-async def save_portfolio_item(item: PortfolioItem):
+async def save_portfolio_item(item: dict):
     try:
-        # Use stable ID to prevent duplicates
-        #doc_id = f"{item.type}_{item.name}"
-        broker = item.get("broker", "ICICI")   # Default to ICICI if not present
-        doc_id = f"{item['type']}_{broker}_{item['name']}"
-        portfolio_collection.document(doc_id).set(item.dict(), merge=True)
+        broker = item.get("broker", "Manual")
+        doc_id = f"{item.get('type')}_{broker}_{item.get('name')}"
+        portfolio_collection.document(doc_id).set(item, merge=True)
         return {"success": True, "message": "Saved successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -307,7 +295,7 @@ async def bulk_save_portfolio(data: dict):
     try:
         items = data.get("items", [])
         for item in items:
-            broker = item.get("broker", "Manual")  # Use "Manual" for MFs added via form
+            broker = item.get("broker", "Manual")
             doc_id = f"{item.get('type')}_{broker}_{item.get('name')}"
             portfolio_collection.document(doc_id).set(item, merge=True)
         return {"success": True, "message": f"Saved {len(items)} items"}
