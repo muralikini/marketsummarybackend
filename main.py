@@ -268,17 +268,6 @@ async def delete_portfolio_item(payload: dict):
 class BulkPortfolio(BaseModel):
     items: List[dict]
 
-@app.post("/api/portfolio/bulk")
-async def bulk_update_portfolio(data: BulkPortfolio):
-    try:
-        for item in data.items:
-            #doc_id = f"{item.get('type')}_{item.get('name')}"
-            broker = item.get("broker", "ICICI")   # Default to ICICI if not present
-            doc_id = f"{item['type']}_{broker}_{item['name']}"
-            portfolio_collection.document(doc_id).set(item, merge=True)
-        return {"success": True, "updated": len(data.items)}
-    except Exception as e:
-        raise HTTPException(500, str(e))
 
 @app.post("/api/portfolio")
 async def save_portfolio_item(item: dict):
