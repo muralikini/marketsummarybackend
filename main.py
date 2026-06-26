@@ -268,7 +268,8 @@ async def get_portfolio():
 @app.delete("/api/portfolio")
 async def delete_portfolio_item(payload: dict):
     try:
-        doc_id = f"{payload.get('type')}_{payload.get('name')}"
+        broker = payload.get("broker", "ICICI")
+        doc_id = f"{payload.get('type')}_{broker}_{payload.get('name')}"
         portfolio_collection.document(doc_id).delete()
         return {"success": True}
     except Exception as e:
@@ -306,11 +307,12 @@ async def bulk_save_portfolio(data: dict):
     try:
         items = data.get("items", [])
         for item in items:
-            doc_id = f"{item.get('type')}_{item.get('name')}"
-            portfolio_collection.document(doc_id).set(item)
+            broker = item.get("broker", "Manual")  # Use "Manual" for MFs added via form
+            doc_id = f"{item.get('type')}_{broker}_{item.get('name')}"
+            portfolio_collection.document(doc_id).set(item, merge=True)
         return {"success": True, "message": f"Saved {len(items)} items"}
     except Exception as e:
-        raise HTTPException(500, str(e))  
+        raise HTTPException(500, str(e))
     
 @app.post("/api/live-mf-nav")
 async def get_mf_nav(request: dict):
