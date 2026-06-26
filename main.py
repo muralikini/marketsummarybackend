@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from breeze_connect import BreezeConnect
+import time
 from datetime import datetime, timedelta
 from typing import Optional, List
 import firebase_admin
@@ -10,6 +11,7 @@ import json
 import yfinance as yf
 from fastapi import APIRouter
 from kiteconnect import KiteConnect
+from fastapi import HTTPException
 
 
 # ==================== Firebase Initialization ====================
@@ -272,12 +274,34 @@ class BulkPortfolio(BaseModel):
 @app.post("/api/portfolio")
 async def save_portfolio_item(item: dict):
     try:
-        broker = item.get("broker", "Manual")
-        doc_id = f"{item.get('type')}_{broker}_{item.get('name')}"
-        portfolio_collection.document(doc_id).set(item, merge=True)
-        return {"success": True, "message": "Saved successfully"}
+        # Generate a safe ID if not provided
+        item_id = item.get("id") or f"{item.get('type', 'item')}_{int(time.time() * 1000)}"
+
+        # Clean data
+        portfolio_data = {
+            "id": item_id,
+            "type": item.get("type"),
+            "name": item.get("name"),
+            "scheme_code": item.get("scheme_code"),
+            "member": item.get("member"),
+            "tier": item.get("tier"),
+            "quantity": float(item.get("quantity", 0)),
+            "avg_price": float(item.get("avg_price", 0)),
+            "current_price": float(item.get("current_price", 0)),
+            "current_value": float(item.get("current_value", 0)),
+            "broker": item.get("broker"),
+            "added_at": item.get("added_at") or datetime.utcnow().isoformat()
+        }
+
+        # Save to Firestore using a clean document reference
+        doc_ref = db.collection("portfolio").document(item_id)
+        doc_ref.set(portfolio_data)
+
+        return {"success": True, "id": item_id, "message": "Portfolio item saved"}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error saving portfolio item: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save: {str(e)}")
 
 @app.post("/api/portfolio/bulk")
 async def bulk_save_portfolio(data: dict):
