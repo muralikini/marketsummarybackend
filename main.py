@@ -257,15 +257,20 @@ async def get_portfolio():
     except Exception as e:
         raise HTTPException(500, str(e))
 
-@app.delete("/api/portfolio")
-async def delete_portfolio_item(payload: dict):
+@app.delete("/api/portfolio/{item_id}")
+async def delete_portfolio_item(item_id: str):
     try:
-        broker = payload.get("broker", "Manual")
-        doc_id = f"{payload.get('type')}_{broker}_{payload.get('name')}"
-        portfolio_collection.document(doc_id).delete()
-        return {"success": True}
+        if not item_id:
+            raise HTTPException(status_code=400, detail="Item ID is required")
+
+        doc_ref = db.collection("portfolio").document(item_id)
+        doc_ref.delete()
+
+        return {"success": True, "message": f"Item {item_id} deleted"}
+
     except Exception as e:
-        raise HTTPException(500, str(e))
+        print(f"Delete error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete: {str(e)}")
 
 class BulkPortfolio(BaseModel):
     items: List[dict]
