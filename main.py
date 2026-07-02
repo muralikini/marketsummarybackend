@@ -279,10 +279,10 @@ class BulkPortfolio(BaseModel):
 @app.post("/api/portfolio")
 async def save_portfolio_item(item: dict):
     try:
-        # Generate a safe ID if not provided
+        # Generate safe ID if not provided
         item_id = item.get("id") or f"{item.get('type', 'item')}_{int(time.time() * 1000)}"
 
-        # Clean data
+        # Clean and prepare data
         portfolio_data = {
             "id": item_id,
             "type": item.get("type"),
@@ -293,21 +293,27 @@ async def save_portfolio_item(item: dict):
             "quantity": float(item.get("quantity", 0)),
             "avg_price": float(item.get("avg_price", 0)),
             "current_price": float(item.get("current_price", 0)),
-            "current_value": float(item.get("current_value", 0)),
+            "current_value": float(item.get("quantity", 0)) * float(item.get("current_price", 0)),
             "broker": item.get("broker"),
-            "added_at": item.get("added_at") or datetime.utcnow().isoformat()
+            "added_at": item.get("added_at") or datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
         }
 
-        # Save to Firestore using a clean document reference
+        # Upsert into Firestore
         doc_ref = db.collection("portfolio").document(item_id)
         doc_ref.set(portfolio_data)
 
-        return {"success": True, "id": item_id, "message": "Portfolio item saved"}
+        return {
+            "success": True, 
+            "id": item_id, 
+            "message": "Portfolio item saved successfully"
+        }
 
     except Exception as e:
         print(f"Error saving portfolio item: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to save: {str(e)}")
-
+    
+    
 @app.post("/api/portfolio/bulk")
 async def bulk_save_portfolio(data: dict):
     try:
