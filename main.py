@@ -282,7 +282,9 @@ async def save_portfolio_item(item: dict):
         # Generate safe ID if not provided
         item_id = item.get("id") or f"{item.get('type', 'item')}_{int(time.time() * 1000)}"
 
-        # Clean and prepare data
+        quantity = float(item.get("quantity", 0))
+        current_price = float(item.get("current_price", 0))
+
         portfolio_data = {
             "id": item_id,
             "type": item.get("type"),
@@ -290,22 +292,22 @@ async def save_portfolio_item(item: dict):
             "scheme_code": item.get("scheme_code"),
             "member": item.get("member"),
             "tier": item.get("tier"),
-            "quantity": float(item.get("quantity", 0)),
+            "quantity": quantity,
             "avg_price": float(item.get("avg_price", 0)),
-            "current_price": float(item.get("current_price", 0)),
-            "current_value": float(item.get("quantity", 0)) * float(item.get("current_price", 0)),
+            "current_price": current_price,
+            "current_value": quantity * current_price,           # ← Safe calculation
             "broker": item.get("broker"),
             "added_at": item.get("added_at") or datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
 
-        # Upsert into Firestore
+        # Upsert to Firestore
         doc_ref = db.collection("portfolio").document(item_id)
         doc_ref.set(portfolio_data)
 
         return {
-            "success": True, 
-            "id": item_id, 
+            "success": True,
+            "id": item_id,
             "message": "Portfolio item saved successfully"
         }
 
@@ -313,7 +315,7 @@ async def save_portfolio_item(item: dict):
         print(f"Error saving portfolio item: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to save: {str(e)}")
     
-    
+
 @app.post("/api/portfolio/bulk")
 async def bulk_save_portfolio(data: dict):
     try:
